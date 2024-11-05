@@ -2,20 +2,24 @@ import { useState } from "react";
 import { TextField, Button, Typography, Container, Box } from "@mui/material";
 import { useLoginMutation } from "../services/api";
 import { useNavigate } from "react-router-dom";
+interface FormData {
+  email: string;
+  password: string;
+}
 
 const Login = () => {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     email: "",
     password: "",
   });
   const [loginUser] = useLoginMutation();
   const navigate = useNavigate();
-  const handleChange = (e: any) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleSubmit = async (e: any) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     // Handle login logic here
     try {

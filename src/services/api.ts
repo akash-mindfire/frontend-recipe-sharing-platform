@@ -18,7 +18,32 @@ export const api = createApi({
         body,
       }),
     }),
+    createRecipe: builder.mutation({
+      query: (body) => ({
+        url: `/recipelist/createrecipe`,
+        method: "POST",
+        body,
+      }),
+    }),
+    getCategory: builder.query({
+      query: () => ({
+        url: `/category/getCategory`,
+        method: "GET",
+      }),
+    }),
+    getHomepageData: builder.query({
+      query: () => ({
+        url: `/home/getHomeData`,
+        method: "GET",
+      }),
+    }),
   }),
 });
 
-export const { useRegisterMutation, useLoginMutation } = api;
+export const {
+  useRegisterMutation,
+  useLoginMutation,
+  useCreateRecipeMutation,
+  useGetCategoryQuery,
+  useGetHomepageDataQuery
+} = api;
