@@ -1,4 +1,3 @@
-//import { ConnectingAirportsOutlined } from "@mui/icons-material";
 import {
   Box,
   Typography,
@@ -8,19 +7,15 @@ import {
   CardMedia,
 } from "@mui/material";
 import Rating from "@mui/material/Rating";
-// interface RecipeItem {
-//   _id: string;
-//   title: string;
-//   image: string;
-//   rating: number; // Optional, if you want to show ratings
-// }
+import { useNavigate } from "react-router-dom";
 
 const HomeMidBodyRecipe = ({ data }: any) => {
+  const navigate = useNavigate();
   return (
     <Box>
       {data?.map((recipe: any) => {
         return (
-          <Box sx={{ padding: { xs: "1rem", md: "2rem" } }}>
+          <Box sx={{ padding: { xs: "1rem", md: "2rem" } }} key={recipe.title}>
             <Typography
               variant="h4"
               align="center"
@@ -39,7 +34,13 @@ const HomeMidBodyRecipe = ({ data }: any) => {
                         height: "100%",
                         display: "flex",
                         flexDirection: "column",
+                        transition: "transform 0.3s ease", // Smooth transition for scaling
+                        cursor: "pointer",
+                        "&:hover": {
+                          transform: "scale(1.05)", // Scale up on hover
+                        },
                       }}
+                      onClick={() => navigate(`/recipe/${recipe._id}`)}
                     >
                       <CardMedia
                         component="img"
@@ -49,8 +50,6 @@ const HomeMidBodyRecipe = ({ data }: any) => {
                         sx={{ objectFit: "cover" }} // Maintain aspect ratio without distortion
                       />
                       <CardContent sx={{ flexGrow: 1 }}>
-                        {" "}
-                        {/* This allows content to take up remaining space */}
                         <Typography
                           variant="body1"
                           noWrap

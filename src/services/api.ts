@@ -37,6 +37,51 @@ export const api = createApi({
         method: "GET",
       }),
     }),
+    getCategoryRecipe: builder.query({
+      query: (id) => ({
+        url: `/recipelist/getrecipe/${id}`,
+        method: "GET",
+      }),
+    }),
+    getRecipeDetailsById: builder.query({
+      query: (id) => ({
+        url: `/recipeDetail/${id}`,
+        method: "GET",
+      }),
+    }),
+    addReview: builder.mutation({
+      query: (body) => ({
+        url: `/review/addreview`,
+        method: "POST",
+        body,
+      }),
+    }),
+    addFav: builder.mutation({
+      query: (body) => ({
+        url: `/favourite/addFavourite`,
+        method: "POST",
+        body,
+      }),
+    }),
+    getFavouriteRecipe: builder.query({
+      query: (id) => ({
+        url: `/favourite/getFavourite/${id}`,
+        method: "GET",
+      }),
+    }),
+    editReview: builder.mutation({
+      query: (body) => ({
+        url: `/review/editreview`,
+        method: "PUT",
+        body,
+      }),
+    }),
+    getSearchRecipe: builder.query({
+      query: (key) => ({
+        url: `/recipelist/getrecipe/search/${key}`,
+        method: "GET",
+      }),
+    }),
   }),
 });
 
@@ -45,5 +90,12 @@ export const {
   useLoginMutation,
   useCreateRecipeMutation,
   useGetCategoryQuery,
-  useGetHomepageDataQuery
+  useGetHomepageDataQuery,
+  useGetCategoryRecipeQuery,
+  useGetRecipeDetailsByIdQuery,
+  useAddReviewMutation,
+  useEditReviewMutation,
+  useGetSearchRecipeQuery,
+  useAddFavMutation,
+  useGetFavouriteRecipeQuery,
 } = api;
