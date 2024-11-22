@@ -22,7 +22,7 @@ const Register = () => {
   const handleSubmit = async (e: any) => {
     e.preventDefault();
     try {
-      const res = await registerUser(formData);
+      await registerUser(formData);
       toast.success("Registered successfully!");
       navigate("/login");
     } catch (error) {
