@@ -44,10 +44,12 @@ function RecipeDetail() {
     } else {
       setIsFav(false);
     }
-    if(user?._id){
-    refetch();  
+
+    if (user?._id) {
+      refetch();
     }
-      }, [clickFavButton, favouriteRecipe, id, refetch]);
+  }, [clickFavButton, favouriteRecipe, id, refetch]);
+
 
   const formatTime = (timestamp: any) => {
     const date = new Date(timestamp);
