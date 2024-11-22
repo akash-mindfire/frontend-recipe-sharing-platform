@@ -41,10 +41,10 @@ function RecipeDetail() {
   useEffect(() => {
     if (favouriteRecipe?.recipes.some((recipe: any) => recipe._id == id)) {
       setIsFav(true);
+      refetch();
     } else {
       setIsFav(false);
     }
-    refetch();
   }, [clickFavButton, favouriteRecipe, id, refetch]);
 
   const formatTime = (timestamp: any) => {
