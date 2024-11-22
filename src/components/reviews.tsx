@@ -144,8 +144,14 @@ function Reviews({ recipeDetail, recipe_id }: any) {
                         name="hover-feedback"
                         value={value}
                         size="large"
-                        onChange={(event, newValue) => setValue(newValue)}
-                        onChangeActive={(event, newHover) => setHover(newHover)}
+                        onChange={(event, newValue) => {
+                          setValue(newValue);
+                          console.log(event);
+                        }}
+                        onChangeActive={(event, newHover) => {
+                          setHover(newHover);
+                          console.log(event);
+                        }}
                         getLabelText={getLabelText}
                         emptyIcon={
                           <StarIcon
