@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { TextField, Button, Typography, Container, Box } from "@mui/material";
 import { useRegisterMutation } from "../services/api";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -10,6 +12,7 @@ const Register = () => {
   });
 
   const [registerUser] = useRegisterMutation();
+  const navigate = useNavigate();
 
   const handleChange = (e: any) => {
     const { name, value } = e.target;
@@ -20,7 +23,8 @@ const Register = () => {
     e.preventDefault();
     try {
       const res = await registerUser(formData);
-      console.log(res);
+      toast.success("Registered successfully!");
+      navigate("/login");
     } catch (error) {
       console.log(error);
     }

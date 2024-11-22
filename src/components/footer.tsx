@@ -31,7 +31,7 @@ const Footer: React.FC = () => {
               />
               CookBook
             </Typography>
-            <Typography variant="body2" sx={{ py: 2, px: 18 }}>
+            <Typography variant="body2" sx={{ py: 2, px: { xs: 6, md: 18 } }}>
               "On the other hand, we denounce with righteous indignation and
               dislike men who are beguiled and demoralized by the charm of
               pleasure of the moment."

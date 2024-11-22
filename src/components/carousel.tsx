@@ -1,6 +1,6 @@
 import { Box, Rating, Typography } from "@mui/material";
 import Carousel from "react-material-ui-carousel";
-
+import { useNavigate } from "react-router-dom";
 interface RecipeItem {
   _id: string; // Assuming string for ObjectId
   image: string;
@@ -10,17 +10,19 @@ interface RecipeItem {
 
 const CarouselHome = ({ data }: any) => {
   const carouselData = data?.carousel ? data.carousel : [];
-
+  const navigate = useNavigate();
   return (
     <Box sx={{ width: "100%", padding: { xs: "1rem", md: "1rem 5rem" } }}>
       <Carousel indicators={true} animation="slide" navButtonsAlwaysVisible>
         {carouselData.map((item: RecipeItem, index: number) => (
           <Box
             key={index}
+            onClick={()=> navigate(`/recipe/${item._id}`)}
             sx={{
               position: "relative",
               height: { xs: "50vh", sm: "60vh", md: "80vh" },
               overflow: "hidden", // Prevent overflow for larger images
+              cursor: "pointer",
             }}
           >
             <img

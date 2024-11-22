@@ -8,61 +8,141 @@ import MenuIcon from "@mui/icons-material/Menu";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import Box from "@mui/material/Box";
-import { Avatar, TextField, Drawer, useMediaQuery } from "@mui/material";
+import CloseIcon from "@mui/icons-material/Close";
+
+import {
+  Avatar,
+  TextField,
+  Drawer,
+  useMediaQuery,
+  CircularProgress,
+  List,
+  ListItem,
+  ListItemText,
+  Dialog,
+  Card,
+  CardContent,
+  Rating,
+} from "@mui/material";
+import DeleteIcon from "@mui/icons-material/Delete";
 import { useTheme } from "@mui/material/styles";
 import SearchIcon from "@mui/icons-material/Search";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
-import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import { useNavigate } from "react-router-dom";
+import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
+import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
+import { useDispatch, useSelector } from "react-redux";
+import { resetTokens } from "../redux/reducers/authReducer";
+import { RootState } from "../redux/store"; // import the RootState type
+import {
+  useAddFavMutation,
+  useGetFavouriteRecipeQuery,
+  useGetSearchRecipeQuery,
+} from "../services/api";
+import { toast } from "react-toastify";
 
 const Navbar: React.FC = () => {
   const theme = useTheme();
   const [state, setState] = useState<boolean>(false);
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
   const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userName, setUserName] = useState<string | null>(null);
   const [showSearch, setShowSearch] = useState(false);
   const [searchText, setSearchText] = useState("");
-  const [animatedPlaceholder, setAnimatedPlaceholder] = useState("");
+  const [searchResults, setSearchResults] = useState<string[]>([]); // Store search results
+  const [debounceTimeout, setDebounceTimeout] = useState<NodeJS.Timeout | null>(
+    null
+  );
 
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      setIsLoggedIn(true);
-      const userData = localStorage.getItem("userData");
-      if (userData) {
-        const parsedUserData = JSON.parse(userData);
-        setUserName(parsedUserData.name);
-      }
+  const { data: searchData, error: apiError } = useGetSearchRecipeQuery(
+    searchText,
+    {
+      skip: !searchText, // Skip the query if no search text
     }
+  );
 
-    const placeholderText = "Search Your Recipe";
-    let currentIndex = 0;
+  const [deletedRecipe, setDeletedRecipe] = useState<Boolean>(false);
+  const [animatedPlaceholder, setAnimatedPlaceholder] = useState("");
+  const [profileMenuAnchor, setProfileMenuAnchor] =
+    useState<null | HTMLElement>(null);
+  const dispatch = useDispatch();
 
-    const typeAnimation = () => {
+  // Access logged-in state and user info from Redux store
+  const { isLoggedIn, user } = useSelector((state: RootState) => state.auth);
+
+  console.log(user, "user");
+  const { data: favouriteRecipe, refetch } = useGetFavouriteRecipeQuery(
+    user?._id,
+    {
+      skip: !user?._id,
+    }
+  );
+  const [addFav] = useAddFavMutation();
+  useEffect(() => {
+    if (user?._id) {
+      refetch();
+      refetch(); // Manually trigger the API call
+    }
+  }, [state, user?._id, deletedRecipe]);
+  useEffect(() => {
+    if (showSearch) {
+      const placeholderText = "Search Your Recipe";
+      let currentIndex = 0;
+
       const interval = setInterval(() => {
         if (currentIndex < placeholderText.length) {
           setAnimatedPlaceholder(placeholderText.slice(0, currentIndex + 1));
           currentIndex++;
         } else {
           clearInterval(interval);
-          setTimeout(() => {
-            currentIndex = 0; 
-            setAnimatedPlaceholder(""); 
-            typeAnimation();
-          }, 5000); 
         }
       }, 200);
 
       return () => clearInterval(interval);
+    } else {
+      setAnimatedPlaceholder(""); // Clear the placeholder when hiding search
+    }
+  }, [showSearch]);
+
+  // Debounce search input
+  useEffect(() => {
+    if (debounceTimeout) {
+      clearTimeout(debounceTimeout); // Clear previous timeout if user is still typing
+    }
+
+    if (searchText) {
+      setIsLoading(true); // Show loading state
+
+      const timeout = setTimeout(() => {
+        // Trigger API call after 500ms of inactivity
+        // No need to do anything, as the API will be triggered automatically by the query hook
+      }, 500);
+
+      setDebounceTimeout(timeout); // Save timeout reference
+    } else {
+      setSearchResults([]); // Clear results when searchText is empty
+    }
+
+    return () => {
+      if (debounceTimeout) {
+        clearTimeout(debounceTimeout); // Clean up timeout on unmount
+      }
     };
+  }, [searchText]);
 
-    typeAnimation();
+  // Update search results after API response
+  useEffect(() => {
+    if (searchData) {
+      setIsLoading(false); // Stop loading state
+      setSearchResults(searchData.data || []); // Assuming the API returns an object with 'data'
+    }
 
-    return () => {};
-  }, []);
+    if (apiError) {
+      setIsLoading(false); // Stop loading state on error
+      console.error("Error fetching data:", apiError); // Log error for debugging
+    }
+  }, [searchData, apiError]);
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -85,11 +165,11 @@ const Navbar: React.FC = () => {
 
   const toggleSearch = () => {
     setShowSearch(!showSearch);
+    setSearchResults([]);
   };
 
   const handleSearchSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-    console.log("Searching for:", searchText);
     setSearchText("");
   };
 
@@ -97,20 +177,46 @@ const Navbar: React.FC = () => {
     setState(!state);
   };
 
+  const handleProfileMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setProfileMenuAnchor(event.currentTarget);
+  };
+
+  const handleProfileMenuClose = () => {
+    setProfileMenuAnchor(null);
+  };
+  console.log(state, "state");
+  const handleLogout = () => {
+    dispatch(resetTokens()); // Dispatch the action to clear the state and localStorage
+    navigate("/login"); // Redirect to login page after logout
+  };
+  const deleteRecipe = async (_id: string) => {
+    try {
+      const formData = {
+        userId: user?._id,
+        recipe_id: _id,
+      };
+      await addFav(formData);
+      setDeletedRecipe(!deletedRecipe);
+    } catch (error) {
+      toast.error("Failed to create recipe. Please try again.");
+      console.log(error);
+    }
+  };
   return (
     <AppBar position="static">
       <Toolbar sx={{ paddingX: { xs: 2, md: 10 } }}>
         <Typography
           onClick={() => navigate("/")}
-          variant="h6"
+          variant="body1"
           sx={{
             flexGrow: 1,
             fontFamily: "cursive",
             fontStyle: "italic",
             cursor: "pointer",
             display: "flex",
+            color: "#fff",
             alignItems: "center",
-            fontSize: { xs: "16px", md: "20px" }, // Responsive font size
+            fontSize: { xs: "16px", md: "20px" },
           }}
         >
           <img
@@ -125,20 +231,29 @@ const Navbar: React.FC = () => {
           CookBook
         </Typography>
 
-        <form onSubmit={handleSearchSubmit} style={{ display: "flex", alignItems: "center" }}>
-          {showSearch ? (
+        <form
+          onSubmit={handleSearchSubmit}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            position: "relative",
+            justifyContent: "end",
+            width: 445,
+          }}
+        >
+          {showSearch && !isMobile ? (
             <TextField
               variant="outlined"
               size="small"
-              placeholder={animatedPlaceholder || "Search recipes"}
+              placeholder={animatedPlaceholder}
               value={searchText}
+              autoComplete="off"
               onChange={(e) => setSearchText(e.target.value)}
-              onBlur={toggleSearch}
               sx={{
                 marginRight: 1,
                 background: "#fff",
                 borderRadius: "8px",
-                width: isMobile ? "150px" : "250px", // Responsive width
+                width: isMobile ? "150px" : "100%",
                 "& .MuiInputBase-input": {
                   fontSize: isMobile ? "14px" : "16px",
                 },
@@ -149,18 +264,149 @@ const Navbar: React.FC = () => {
               <SearchIcon />
             </IconButton>
           )}
+          {showSearch && isMobile && (
+            <Dialog
+              fullScreen
+              open={showSearch}
+              onClose={toggleSearch}
+              // TransitionComponent={Transition}
+              PaperProps={{
+                sx: {
+                  backgroundColor: "rgba(255, 255, 255, 0.8)", // Overlay effect
+                },
+              }}
+            >
+              <Box
+                sx={{
+                  position: "absolute",
+                  left: "50%",
+                  transform: "translateX(-50%)",
+                  width: "100%",
+                  maxWidth: "600px",
+                }}
+              >
+                <TextField
+                  variant="outlined"
+                  placeholder={animatedPlaceholder}
+                  value={searchText}
+                  autoComplete="off"
+                  onChange={(e) => setSearchText(e.target.value)}
+                  fullWidth
+                  InputProps={{
+                    sx: {
+                      backgroundColor: "white",
+                      borderRadius: "8px",
+                      padding: "5px 10px",
+                      border: "none",
+                      outline: "none",
+                    },
+                  }}
+                />
+              </Box>
+              <IconButton
+                color="inherit"
+                onClick={toggleSearch}
+                sx={{ position: "absolute", top: 12, right: "20px" }}
+              >
+                <CloseIcon />
+              </IconButton>
+              {searchResults.length > 0 && showSearch && (
+                <List
+                  sx={{
+                    marginTop: 10,
+                    maxHeight: 500,
+                    overflow: "overlay",
+                    background: "#fff",
+                  }}
+                >
+                  {searchResults.map((result: any) => (
+                    <ListItem
+                      key={result._id}
+                      alignItems="flex-start"
+                      onClick={() => {
+                        setShowSearch(!showSearch);
+                        setSearchText("");
+                        setSearchResults([]);
+                        navigate(`recipe/${result._id}`);
+                      }}
+                    >
+                      <Avatar
+                        alt={result.recipe_title} // Use recipe title for alt text
+                        src={result.image} // Use image URL for the avatar
+                        sx={{ width: 56, height: 56, marginRight: 2 }} // Avatar styling
+                      />
+                      <ListItemText
+                        primary={result.recipe_title} // Render recipe title
+                      />
+                    </ListItem>
+                  ))}
+                </List>
+              )}
+            </Dialog>
+          )}
+          {isLoading && <CircularProgress size={24} sx={{ marginTop: 1 }} />}{" "}
+          {/* Loading spinner */}
+          {searchResults.length > 0 && showSearch && (
+            <List
+              sx={{
+                marginTop: 1,
+                position: "absolute",
+                maxHeight: 500,
+                zIndex: 9,
+                overflow: "overlay",
+                background: "#fff",
+                top: 50,
+              }}
+            >
+              {searchResults.map((result: any) => (
+                <ListItem
+                  key={result._id}
+                  alignItems="flex-start"
+                  onClick={() => {
+                    setShowSearch(!showSearch);
+                    setSearchText("");
+                    setSearchResults([]);
+                    navigate(`recipe/${result._id}`);
+                  }}
+                  sx={{ cursor: "pointer" }}
+                >
+                  <Avatar
+                    alt={result.recipe_title} // Use recipe title for alt text
+                    src={result.image} // Use image URL for the avatar
+                    sx={{ width: 56, height: 56, marginRight: 2 }} // Avatar styling
+                  />
+                  <ListItemText
+                    primary={result.recipe_title} // Render recipe title
+                  />
+                </ListItem>
+              ))}
+            </List>
+          )}
+          {/* Handle case when no results are found */}
         </form>
 
         {!isMobile ? (
           <Box sx={{ display: "flex", alignItems: "center" }}>
-            <Button color="inherit" sx={{ mx: 1 }} onClick={() => navigate("/")}>
+            <Button
+              color="inherit"
+              sx={{ mx: 1 }}
+              onClick={() => navigate("/")}
+            >
               Recipe
             </Button>
-            <Button color="inherit" sx={{ mx: 1 }} onClick={() => navigate("/createrecipe")}>
-              Create Recipe
-            </Button>
+            {isLoggedIn ? (
+              <Button
+                color="inherit"
+                sx={{ mx: 1 }}
+                onClick={() => navigate("/createrecipe")}
+              >
+                Create Recipe
+              </Button>
+            ) : (
+              ""
+            )}
             <Button color="inherit" sx={{ mx: 1 }} onClick={toggleDrawer}>
-              <ShoppingCartIcon /> Cart
+              <FavoriteBorderIcon /> Favourite
             </Button>
 
             {isLoggedIn ? (
@@ -179,7 +425,17 @@ const Navbar: React.FC = () => {
                   sx={{ bg: "#000", mr: 1 }}
                   src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSPFNeUn89NkscCQdePBFlIp7ixL81eU9pY3g&s"
                 />
-                {userName}
+                {user?.name}
+                <IconButton color="inherit" onClick={handleProfileMenuOpen}>
+                  <ArrowDropDownIcon />
+                </IconButton>
+                <Menu
+                  anchorEl={profileMenuAnchor}
+                  open={Boolean(profileMenuAnchor)}
+                  onClose={handleProfileMenuClose}
+                >
+                  <MenuItem onClick={handleLogout}>Logout</MenuItem>
+                </Menu>
               </Typography>
             ) : (
               <Button color="inherit" onClick={() => navigate("/login")}>
@@ -192,26 +448,123 @@ const Navbar: React.FC = () => {
             <IconButton edge="end" color="inherit" onClick={handleMenuOpen}>
               <MenuIcon />
             </IconButton>
-            <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
-              <MenuItem onClick={() => handleMenuClose("recipe")}>Recipe</MenuItem>
-              <MenuItem onClick={() => handleMenuClose("createrecipe")}>Create Recipe</MenuItem>
-              {isLoggedIn && (
-                <MenuItem onClick={toggleDrawer}>
-                  <ShoppingCartIcon /> Cart
+            <Menu
+              anchorEl={anchorEl}
+              open={Boolean(anchorEl)}
+              onClose={handleMenuClose}
+            >
+              {isLoggedIn ? (
+                <MenuItem onClick={() => setAnchorEl(null)}>
+                  <Avatar
+                    alt="User Avatar"
+                    sx={{ bg: "#000", mr: 1 }}
+                    src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSPFNeUn89NkscCQdePBFlIp7ixL81eU9pY3g&s"
+                  />
+                  {user?.name}
+                  <hr />
+                </MenuItem>
+              ) : (
+                <MenuItem onClick={() => handleMenuClose("login")}>
+                  Login
                 </MenuItem>
               )}
-              {isLoggedIn ? (
-                <MenuItem onClick={() => setAnchorEl(null)}>{userName}</MenuItem>
-              ) : (
-                <MenuItem onClick={() => handleMenuClose("login")}>Login</MenuItem>
+              <MenuItem onClick={() => handleMenuClose("recipe")}>
+                Recipe
+              </MenuItem>
+              {isLoggedIn && (
+                <MenuItem onClick={() => handleMenuClose("createrecipe")}>
+                  Create Recipe
+                </MenuItem>
               )}
+              {isLoggedIn && (
+                <MenuItem onClick={toggleDrawer}>Favourite</MenuItem>
+              )}
+              {isLoggedIn && <MenuItem onClick={handleLogout}>Logout</MenuItem>}
             </Menu>
           </>
         )}
 
         <Drawer anchor="right" open={state} onClose={toggleDrawer}>
-          <h3 style={{ textAlign: "center" }}>Cart</h3>
-          {/* Cart content can go here */}
+          <Box
+            sx={{
+              width: { xs: "100vw", sm: 400, md: 500 }, // Full width for small screens, 400px for small devices, 500px for medium and up
+              padding: 2,
+            }}
+          >
+            {/* Close Button */}
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                mb: 2, // Add margin below the close button
+              }}
+            >
+              {" "}
+              <Typography variant="h6" gutterBottom>
+                Favorite Recipes
+              </Typography>
+              <IconButton onClick={toggleDrawer}>
+                <CloseIcon />
+              </IconButton>
+            </Box>
+
+            <Box
+              sx={{
+                display: "grid",
+                gap: 2,
+                mt: 1,
+              }}
+            >
+              {favouriteRecipe?.recipes.map((recipe: any) => (
+                <Card
+                  key={recipe._id}
+                  sx={{
+                    display: "flex",
+                    flexDirection: { xs: "column", sm: "row" }, // Stack items vertically on smaller screens
+                    alignItems: "center",
+                  }}
+                >
+                  <Avatar
+                    src={recipe.image}
+                    alt={recipe.title}
+                    sx={{
+                      width: { xs: 60, sm: 80 }, // Smaller avatar size on small screens
+                      height: { xs: 60, sm: 80 },
+                      mr: { xs: 0, sm: 2 }, // Remove margin on small screens
+                      mb: { xs: 2, sm: 0 }, // Add bottom margin for vertical layout
+                    }}
+                  />
+
+                  <Box sx={{ flexGrow: 1 }}>
+                    <CardContent
+                      sx={{
+                        padding: 2,
+                        textAlign: { xs: "center", sm: "left" }, // Center text for small screens
+                      }}
+                    >
+                      <Typography variant="body1">
+                        {recipe.recipe_title}
+                      </Typography>
+                      <Rating value={recipe.rating} readOnly precision={0.1} />
+                    </CardContent>
+                  </Box>
+
+                  {/* Delete button */}
+                  <IconButton
+                    onClick={() => deleteRecipe(recipe._id)}
+                    sx={{
+                      color: "red",
+                      alignSelf: { xs: "center", sm: "flex-start" }, // Center button on small screens
+                      mt: { xs: 1, sm: 0 }, // Add top margin for vertical layout
+                    }}
+                  >
+                    <DeleteIcon />
+                  </IconButton>
+                </Card>
+              ))}
+            </Box>
+          </Box>
         </Drawer>
       </Toolbar>
     </AppBar>

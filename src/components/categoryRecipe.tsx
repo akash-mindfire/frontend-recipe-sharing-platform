@@ -1,6 +1,8 @@
 import React from "react";
 import { useGetCategoryQuery } from "../services/api"; // Adjust the import based on your query hook
 import { Box, Typography, Grid } from "@mui/material";
+import { useNavigate } from "react-router-dom";
+import Loader from "./loader";
 
 interface CategoryItem {
   _id: string;
@@ -10,8 +12,8 @@ interface CategoryItem {
 
 const Categories: React.FC = () => {
   const { data, error, isLoading } = useGetCategoryQuery(""); // Adjust based on your actual query hook
-
-  if (isLoading) return <p>Loading categories...</p>;
+  const navigate = useNavigate();
+  if (isLoading) return <Loader />;
   if (error) return <p>Error loading categories.</p>;
 
   const categoriesData: CategoryItem[] = data?.data || []; // Adjust according to your API response
@@ -32,7 +34,9 @@ const Categories: React.FC = () => {
                 borderRadius: "8px",
                 overflow: "hidden",
                 boxShadow: 2,
+                cursor: "pointer",
               }}
+              onClick={() => navigate(`/category/${category._id}`)}
             >
               <img
                 src={category.image}

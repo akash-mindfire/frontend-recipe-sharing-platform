@@ -1,7 +1,11 @@
 import { useState } from "react";
 import { TextField, Button, Typography, Container, Box } from "@mui/material";
 import { useLoginMutation } from "../services/api";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { setTokens } from "../redux/reducers/authReducer";
+import { toast } from "react-toastify";
+
 interface FormData {
   email: string;
   password: string;
@@ -13,7 +17,13 @@ const Login = () => {
     password: "",
   });
   const [loginUser] = useLoginMutation();
+  const dispatch = useDispatch(); // Hook to dispatch actions to Redux
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Extract redirect path from query parameter
+  const redirectPath = new URLSearchParams(location.search).get("redirect");
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
@@ -21,15 +31,22 @@ const Login = () => {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // Handle login logic here
     try {
       const res: any = await loginUser(formData);
-      localStorage.setItem("token", res.data.data.accessToken);
-      localStorage.setItem("userData", JSON.stringify(res.data?.data.user));
-      navigate("/");
+      if (res.data?.data) {
+        const user = res.data.data.user;
+        const token = res.data.data.accessToken;
+        dispatch(setTokens({ user, token }));
+        toast.success("Login successfully!");
+        // Redirect to the original page or home page
+        navigate(redirectPath || "/");
+      }
     } catch (error) {
-      console.log(error);
+      console.error("Login failed:", error);
     }
+  };
+  const handleRegisterRedirect = () => {
+    navigate("/register"); // Replace "/register" with your actual registration page route
   };
 
   return (
@@ -69,6 +86,18 @@ const Login = () => {
             Login
           </Button>
         </form>
+        <Typography variant="h6" sx={{ textAlign: "center", mt: 1 }}>
+          or
+        </Typography>
+        <Button
+          fullWidth
+          variant="outlined"
+          color="secondary"
+          sx={{ mt: 1 }}
+          onClick={handleRegisterRedirect}
+        >
+          Register
+        </Button>
       </Box>
     </Container>
   );
