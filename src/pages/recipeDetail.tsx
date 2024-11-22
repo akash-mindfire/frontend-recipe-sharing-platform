@@ -41,9 +41,11 @@ function RecipeDetail() {
   useEffect(() => {
     if (favouriteRecipe?.recipes.some((recipe: any) => recipe._id == id)) {
       setIsFav(true);
-      refetch();
     } else {
       setIsFav(false);
+    }
+    if (user?._id) {
+      refetch();
     }
   }, [clickFavButton, favouriteRecipe, id, refetch]);
 
