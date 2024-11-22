@@ -242,23 +242,37 @@ const Navbar: React.FC = () => {
           }}
         >
           {showSearch && !isMobile ? (
-            <TextField
-              variant="outlined"
-              size="small"
-              placeholder={animatedPlaceholder}
-              value={searchText}
-              autoComplete="off"
-              onChange={(e) => setSearchText(e.target.value)}
-              sx={{
-                marginRight: 1,
-                background: "#fff",
-                borderRadius: "8px",
-                width: isMobile ? "150px" : "100%",
-                "& .MuiInputBase-input": {
-                  fontSize: isMobile ? "14px" : "16px",
-                },
-              }}
-            />
+            <>
+              <TextField
+                variant="outlined"
+                size="small"
+                placeholder={animatedPlaceholder}
+                value={searchText}
+                autoComplete="off"
+                onChange={(e) => setSearchText(e.target.value)}
+                sx={{
+                  marginRight: 1,
+                  background: "#fff",
+                  borderRadius: "8px",
+                  width: isMobile ? "150px" : "100%",
+                  "& .MuiInputBase-input": {
+                    fontSize: isMobile ? "14px" : "16px",
+                  },
+                }}
+              />
+              <CloseIcon
+                sx={{
+                  position: "absolute",
+                  top: "12px",
+                  color: "#000",
+                  width: "1rem",
+                  height: "1rem",
+                  right: "20px",
+                  cursor: "pointer",
+                }}
+                onClick={toggleSearch}
+              />
+            </>
           ) : (
             <IconButton color="inherit" onClick={toggleSearch}>
               <SearchIcon />
