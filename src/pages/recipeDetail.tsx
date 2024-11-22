@@ -274,7 +274,7 @@ function RecipeDetail() {
           p: { md: 3 },
           alignItems: "center",
           bgcolor: "#e1e1e1",
-          width: { md: "55%", xs: "12rem", sm: "12rem" },
+          width: { md: "55%", xs: "100%", sm: "100%" },
           padding: { xs: 2 },
           justifyContent: "space-around",
           mt: { md: 2, xs: 1, sm: 1 },
@@ -283,13 +283,20 @@ function RecipeDetail() {
         <Box>
           <Typography
             variant="body1"
-            sx={{ fontWeight: "700", fontSize: "1.2rem" }}
+            sx={{
+              fontWeight: "700",
+              fontSize: { md: "1.2rem", sm: "1rem", xs: "1rem" },
+            }}
+            noWrap
           >
             Active Time:
           </Typography>
           <Typography
             variant="body1"
-            sx={{ fontWeight: "700", fontSize: "1.2rem" }}
+            sx={{
+              fontWeight: "700",
+              fontSize: { md: "1.2rem", sm: "1rem", xs: "1rem" },
+            }}
           >
             {recipeDetail.activeTime}
           </Typography>
@@ -297,13 +304,20 @@ function RecipeDetail() {
         <Box>
           <Typography
             variant="body1"
-            sx={{ fontWeight: "700", fontSize: "1.2rem" }}
+            sx={{
+              fontWeight: "700",
+              fontSize: { md: "1.2rem", sm: "1rem", xs: "1rem" },
+            }}
+            noWrap
           >
             Total Time:
           </Typography>
           <Typography
             variant="body1"
-            sx={{ fontWeight: "700", fontSize: "1.2rem" }}
+            sx={{
+              fontWeight: "700",
+              fontSize: { md: "1.2rem", sm: "1rem", xs: "1rem" },
+            }}
           >
             {recipeDetail.totalTime}
           </Typography>
@@ -311,13 +325,20 @@ function RecipeDetail() {
         <Box>
           <Typography
             variant="body1"
-            sx={{ fontWeight: "700", fontSize: "1.2rem" }}
+            sx={{
+              fontWeight: "700",
+              fontSize: { md: "1.2rem", sm: "1rem", xs: "1rem" },
+            }}
+            noWrap
           >
             Servings:
           </Typography>
           <Typography
             variant="body1"
-            sx={{ fontWeight: "700", fontSize: "1.2rem" }}
+            sx={{
+              fontWeight: "700",
+              fontSize: { md: "1.2rem", sm: "1rem", xs: "1rem" },
+            }}
           >
             {recipeDetail.servings}
           </Typography>
