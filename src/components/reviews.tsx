@@ -53,14 +53,14 @@ function Reviews({ recipeDetail, recipe_id }: any) {
     }
   }, [recipeDetail, user?._id]);
 
-  const formatTimestamp = (timestamp: string): string => {
+  const formatTimestamp = useCallback((timestamp: string): string => {
     const date = new Date(timestamp);
     return `${date.getDate().toString().padStart(2, "0")}/${(
       date.getMonth() + 1
     )
       .toString()
       .padStart(2, "0")}/${date.getFullYear()}`;
-  };
+  }, []);
 
   const handleRedirectToLogin = useCallback(() => {
     const currentPage = window.location.pathname;
@@ -101,6 +101,7 @@ function Reviews({ recipeDetail, recipe_id }: any) {
         toast.error("You must be logged in to submit a review.");
       }
     } catch (error) {
+      toast.error("Failed to submit review. Please try again.");
       console.error("Error submitting review:", error);
     }
   }, [

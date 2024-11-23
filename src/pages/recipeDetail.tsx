@@ -18,7 +18,7 @@ import StarBorderIcon from "@mui/icons-material/StarBorder";
 import FiberManualRecordIcon from "@mui/icons-material/FiberManualRecord";
 import Reviews from "../components/reviews";
 import { toast } from "react-toastify";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "../redux/store";
 
@@ -59,21 +59,20 @@ function RecipeDetail() {
     return formattedDate;
   };
 
-  const handleFavRecipe = async () => {
+  const handleFavRecipe = useCallback(async () => {
     try {
       const formData = {
         userId: user?._id,
         recipe_id: id,
       };
       await addFav(formData);
-      setClickFavButton(!clickFavButton);
+      setClickFavButton((prev) => !prev); // Use functional update to ensure the previous state is accessed
       toast.success("Recipe added to your favourite!");
     } catch (error) {
       toast.error("Failed to create recipe. Please try again.");
       console.log(error);
     }
-  };
-
+  }, [user?._id, id]);
   if (isLoading) return <Loader />;
 
   if (error) return <div>Error loading recipes</div>;

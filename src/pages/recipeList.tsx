@@ -15,7 +15,9 @@ function RecipeList() {
   const { id } = useParams();
   const { data, error, isLoading } = useGetCategoryRecipeQuery(id);
   const navigate = useNavigate();
+
   if (isLoading) return <Loader />;
+
   if (error) return <div>Error loading recipes</div>;
 
   return (

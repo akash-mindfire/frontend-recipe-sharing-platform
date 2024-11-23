@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { TextField, Button, Typography, Container, Box } from "@mui/material";
 import { useLoginMutation } from "../services/api";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { setTokens } from "../redux/reducers/authReducer";
 import { toast } from "react-toastify";
+import Loader from "../components/loader";
 
 interface FormData {
   email: string;
@@ -16,6 +17,7 @@ const Login = () => {
     email: "",
     password: "",
   });
+  const [isLoading, setIsLoading] = useState<Boolean>(false);
   const [loginUser] = useLoginMutation();
   const dispatch = useDispatch(); // Hook to dispatch actions to Redux
   const navigate = useNavigate();
@@ -24,31 +26,46 @@ const Login = () => {
   // Extract redirect path from query parameter
   const redirectPath = new URLSearchParams(location.search).get("redirect");
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-  };
+  const handleChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const { name, value } = e.target;
+      setFormData((prevFormData) => ({
+        ...prevFormData,
+        [name]: value,
+      }));
+    },
+    [] // No dependencies, because it's only using setFormData which should be stable.
+  );
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    try {
-      const res: any = await loginUser(formData);
-      if (res.data?.data) {
-        const user = res.data.data.user;
-        const token = res.data.data.accessToken;
-        dispatch(setTokens({ user, token }));
-        toast.success("Login successfully!");
-        // Redirect to the original page or home page
-        navigate(redirectPath || "/");
+  const handleSubmit = useCallback(
+    async (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      try {
+        setIsLoading(true);
+        const res: any = await loginUser(formData);
+        if (res.data?.data) {
+          const user = res.data.data.user;
+          const token = res.data.data.accessToken;
+
+          dispatch(setTokens({ user, token }));
+          toast.success("Login successfully!");
+          setIsLoading(false);
+          // Redirect to the original page or home page
+          navigate(redirectPath || "/");
+        }
+      } catch (error) {
+        console.error("Login failed:", error);
       }
-    } catch (error) {
-      console.error("Login failed:", error);
-    }
-  };
-  const handleRegisterRedirect = () => {
-    navigate("/register"); // Replace "/register" with your actual registration page route
-  };
+    },
+    [formData, dispatch, navigate, redirectPath] // Dependencies, only re-creates the function if these change
+  );
 
+  const handleRegisterRedirect = useCallback(() => {
+    navigate("/register"); // Redirect to register page
+  }, [navigate]);
+
+  if (isLoading) return <Loader />;
+  
   return (
     <Container maxWidth="sm">
       <Box sx={{ mt: 8, p: 4, boxShadow: 3, borderRadius: 2 }}>
