@@ -1,5 +1,5 @@
 import { Box, Typography, Button, Rating } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "../redux/store";
 import ReviewsIcon from "@mui/icons-material/Reviews";
@@ -62,12 +62,12 @@ function Reviews({ recipeDetail, recipe_id }: any) {
       .padStart(2, "0")}/${date.getFullYear()}`;
   };
 
-  const handleRedirectToLogin = () => {
+  const handleRedirectToLogin = useCallback(() => {
     const currentPage = window.location.pathname;
     navigate(`/login?redirect=${encodeURIComponent(currentPage)}`);
-  };
+  }, [navigate]);
 
-  const handleSubmit = async () => {
+  const handleSubmit = useCallback(async () => {
     try {
       const auth = localStorage.getItem("auth");
       if (auth) {
@@ -93,11 +93,7 @@ function Reviews({ recipeDetail, recipe_id }: any) {
           setIsReviewed(true);
           setReviewData(newReview);
           recipeDetail.reviews = updatedReviews; // Update the local recipeDetail
-          if (isEditReview) {
-            toast.success("Review modified successfully!");
-          } else {
-            toast.success("Review added successfully!");
-          }
+
           setReview(""); // Reset the review form
           setValue(0);
         }
@@ -105,21 +101,36 @@ function Reviews({ recipeDetail, recipe_id }: any) {
         toast.error("You must be logged in to submit a review.");
       }
     } catch (error) {
-      toast.error("Failed to submit review. Please try again.");
       console.error("Error submitting review:", error);
     }
-  };
+  }, [
+    isEditReview,
+    recipe_id,
+    review,
+    value,
+    setReview,
+    setValue,
+    setIsReviewed,
+    setReviewData,
+    recipeDetail,
+  ]);
 
-  const handleCancel = () => {
+  const handleCancel = useCallback(() => {
     setReview("");
     setValue(0);
-  };
+  }, [setReview, setValue]);
 
-  const handleEditReview = () => {
+  const handleEditReview = useCallback(() => {
     setIsReviewed(false);
     setValue(reviewData.rating);
     setReview(reviewData.review_message);
-  };
+  }, [
+    setIsReviewed,
+    setValue,
+    setReview,
+    reviewData.rating,
+    reviewData.review_message,
+  ]);
 
   return (
     <Box sx={{ mt: 2, width: { md: 750, xs: "100%" } }}>

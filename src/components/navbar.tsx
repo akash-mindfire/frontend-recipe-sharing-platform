@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import AppBar from "@mui/material/AppBar";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
@@ -71,7 +71,6 @@ const Navbar: React.FC = () => {
   // Access logged-in state and user info from Redux store
   const { isLoggedIn, user } = useSelector((state: RootState) => state.auth);
 
-  console.log(user, "user");
   const { data: favouriteRecipe, refetch } = useGetFavouriteRecipeQuery(
     user?._id,
     {
@@ -79,9 +78,9 @@ const Navbar: React.FC = () => {
     }
   );
   const [addFav] = useAddFavMutation();
+
   useEffect(() => {
     if (user?._id) {
-      refetch();
       refetch(); // Manually trigger the API call
     }
   }, [state, user?._id, deletedRecipe]);
@@ -144,64 +143,76 @@ const Navbar: React.FC = () => {
     }
   }, [searchData, apiError]);
 
-  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+  const handleMenuOpen = useCallback((event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
-  };
+  }, []);
 
-  const handleMenuClose = (page: string) => {
-    setAnchorEl(null);
-    switch (page) {
-      case "recipe":
-        navigate("/");
-        break;
-      case "createrecipe":
-        navigate("createrecipe");
-        break;
-      case "login":
-        navigate("login");
-        break;
-    }
-  };
+  const handleMenuClose = useCallback(
+    (page: string) => {
+      setAnchorEl(null);
+      switch (page) {
+        case "recipe":
+          navigate("/");
+          break;
+        case "createrecipe":
+          navigate("createrecipe");
+          break;
+        case "login":
+          navigate("login");
+          break;
+      }
+    },
+    [navigate]
+  );
 
-  const toggleSearch = () => {
-    setShowSearch(!showSearch);
+  const toggleSearch = useCallback(() => {
+    setShowSearch((prev) => !prev);
     setSearchResults([]);
-  };
+  }, []);
 
-  const handleSearchSubmit = (event: React.FormEvent) => {
+  const handleSearchSubmit = useCallback((event: React.FormEvent) => {
     event.preventDefault();
     setSearchText("");
-  };
+  }, []);
 
-  const toggleDrawer = () => {
-    setState(!state);
-  };
+  const toggleDrawer = useCallback(() => {
+    setState((prev) => !prev);
+  }, []);
 
-  const handleProfileMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
-    setProfileMenuAnchor(event.currentTarget);
-  };
+  const handleProfileMenuOpen = useCallback(
+    (event: React.MouseEvent<HTMLElement>) => {
+      setProfileMenuAnchor(event.currentTarget);
+    },
+    []
+  );
 
-  const handleProfileMenuClose = () => {
+  const handleProfileMenuClose = useCallback(() => {
     setProfileMenuAnchor(null);
-  };
-  console.log(state, "state");
-  const handleLogout = () => {
-    dispatch(resetTokens()); // Dispatch the action to clear the state and localStorage
-    navigate("/login"); // Redirect to login page after logout
-  };
-  const deleteRecipe = async (_id: string) => {
-    try {
-      const formData = {
-        userId: user?._id,
-        recipe_id: _id,
-      };
-      await addFav(formData);
-      setDeletedRecipe(!deletedRecipe);
-    } catch (error) {
-      toast.error("Failed to create recipe. Please try again.");
-      console.log(error);
-    }
-  };
+  }, []);
+
+  const handleLogout = useCallback(() => {
+    dispatch(resetTokens());
+    navigate("/login");
+    setAnchorEl(null);
+  }, [dispatch, navigate]);
+
+  const deleteRecipe = useCallback(
+    async (_id: string) => {
+      try {
+        const formData = {
+          userId: user?._id,
+          recipe_id: _id,
+        };
+        await addFav(formData); // Assuming addFav performs the deletion operation
+        setDeletedRecipe((prevState) => !prevState); // Toggle state based on the previous state
+      } catch (error) {
+        toast.error("Failed to delete recipe. Please try again.");
+        console.log(error);
+      }
+    },
+    [user?._id, setDeletedRecipe]
+  );
+
   return (
     <AppBar position="static">
       <Toolbar sx={{ paddingX: { xs: 2, md: 10 } }}>

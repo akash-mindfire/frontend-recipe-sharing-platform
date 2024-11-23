@@ -37,7 +37,7 @@ function RecipeDetail() {
       skip: !user?._id,
     }
   );
-  console.log("fav", favouriteRecipe?.recipes);
+
   useEffect(() => {
     if (favouriteRecipe?.recipes.some((recipe: any) => recipe._id == id)) {
       setIsFav(true);
@@ -79,7 +79,7 @@ function RecipeDetail() {
   if (isLoading) return <Loader />;
 
   if (error) return <div>Error loading recipes</div>;
-  console.log(isFav, "isfav");
+
   return (
     <Box sx={{ px: { md: 8 } }}>
       {/* Recipe Title */}
