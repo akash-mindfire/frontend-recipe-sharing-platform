@@ -101,7 +101,6 @@ function Reviews({ recipeDetail, recipe_id }: any) {
         toast.error("You must be logged in to submit a review.");
       }
     } catch (error) {
-      toast.error("Failed to submit review. Please try again.");
       console.error("Error submitting review:", error);
     }
   }, [
