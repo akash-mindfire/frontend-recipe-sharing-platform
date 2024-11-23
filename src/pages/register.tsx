@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { TextField, Button, Typography, Container, Box } from "@mui/material";
 import { useRegisterMutation } from "../services/api";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import Loader from "../components/loader";
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -10,26 +11,31 @@ const Register = () => {
     email: "",
     password: "",
   });
-
+  const [isLoading, setIsLoading] = useState<Boolean>(false);
   const [registerUser] = useRegisterMutation();
   const navigate = useNavigate();
 
-  const handleChange = (e: any) => {
+  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-  };
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  }, []);
 
-  const handleSubmit = async (e: any) => {
+  const handleSubmit = useCallback(async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
+      setIsLoading(true);
       await registerUser(formData);
       toast.success("Registered successfully!");
+      setIsLoading(false);
       navigate("/login");
     } catch (error) {
       console.log(error);
+      setIsLoading(false);
     }
-  };
+  }, [formData]);
 
+  if (isLoading) return <Loader />;
+  
   return (
     <Container maxWidth="sm">
       <Box sx={{ mt: 8, p: 4, boxShadow: 3, borderRadius: 2 }}>

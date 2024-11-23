@@ -18,6 +18,7 @@ import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
 import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 interface Ingredient {
   _id: number;
   desc: string;
@@ -61,7 +62,7 @@ const CreateRecipe: React.FC = () => {
     image: null,
     imageUrl: null, // Initialize the thumbnail URL
   });
-
+  const navigate = useNavigate();
   const [errors, setErrors] = useState<any>({});
 
   const [createRecipe] = useCreateRecipeMutation();
@@ -161,37 +162,41 @@ const CreateRecipe: React.FC = () => {
     return Object.keys(newErrors).length === 0;
   }, [recipe]);
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!validateForm()) return; // Validate before proceeding
+  const handleSubmit = useCallback(
+    async (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+      if (!validateForm()) return; // Validate before proceeding
 
-    const user: any = localStorage.getItem("auth");
-    if (user) {
-      try {
-        const parsedUser = JSON.parse(user);
-        const formData = new FormData();
-        formData.append("recipe_title", recipe.recipe_title);
-        formData.append("recipe_desc", recipe.recipe_desc);
-        formData.append("activeTime", recipe.activeTime);
-        formData.append("totalTime", recipe.totalTime);
-        formData.append("categoryId", recipe.category);
-        formData.append("servings", recipe.servings.toString());
-        formData.append("ingredients", JSON.stringify(recipe.ingredients));
-        formData.append("directions", JSON.stringify(recipe.directions));
-        formData.append("rating", recipe.rating.toString());
-        formData.append("createdBy", parsedUser.user.name);
-        formData.append("createrUser_Id", parsedUser.user._id);
-        if (recipe.image) {
-          formData.append("image", recipe.image); // Append the uploaded image
+      const user: any = localStorage.getItem("auth");
+      if (user) {
+        try {
+          const parsedUser = JSON.parse(user);
+          const formData = new FormData();
+          formData.append("recipe_title", recipe.recipe_title);
+          formData.append("recipe_desc", recipe.recipe_desc);
+          formData.append("activeTime", recipe.activeTime);
+          formData.append("totalTime", recipe.totalTime);
+          formData.append("categoryId", recipe.category);
+          formData.append("servings", recipe.servings.toString());
+          formData.append("ingredients", JSON.stringify(recipe.ingredients));
+          formData.append("directions", JSON.stringify(recipe.directions));
+          formData.append("rating", recipe.rating.toString());
+          formData.append("createdBy", parsedUser.user.name);
+          formData.append("createrUser_Id", parsedUser.user._id);
+          if (recipe.image) {
+            formData.append("image", recipe.image); // Append the uploaded image
+          }
+          await createRecipe(formData);
+          toast.success("Recipe created successfully!");
+          navigate("/");
+        } catch (error) {
+          toast.error("Failed to create recipe. Please try again.");
+          console.log(error);
         }
-        await createRecipe(formData);
-        toast.success("Recipe created successfully!");
-      } catch (error) {
-        toast.error("Failed to create recipe. Please try again.");
-        console.log(error);
       }
-    }
-  };
+    },
+    [recipe, validateForm, createRecipe, navigate] // Dependencies that trigger re-creation of the callback
+  );
 
   const handleDeleteIngredient = useCallback(
     (index: number) => {
