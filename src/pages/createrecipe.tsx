@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import {
   Box,
   Button,
@@ -67,57 +67,68 @@ const CreateRecipe: React.FC = () => {
   const [createRecipe] = useCreateRecipeMutation();
   const { data } = useGetCategoryQuery({});
 
-  const handleSelectCategory = (e: any) => {
-    setRecipe({ ...recipe, [e.target.name]: e.target.value });
-  };
+  const handleSelectCategory = useCallback((e: any) => {
+    setRecipe((prevRecipe) => ({
+      ...prevRecipe,
+      [e.target.name]: e.target.value,
+    }));
+  }, []);
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    setRecipe({ ...recipe, [e.target.name]: e.target.value });
-  };
+  const handleInputChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      setRecipe((prevRecipe) => ({
+        ...prevRecipe,
+        [e.target.name]: e.target.value,
+      }));
+    },
+    []
+  );
 
-  const handleDeleteImage = () => {
-    setRecipe({
-      ...recipe,
+  const handleDeleteImage = useCallback(() => {
+    setRecipe((prevRecipe) => ({
+      ...prevRecipe,
       image: null,
       imageUrl: null,
-    });
-  };
+    }));
+  }, []);
+  const handleImageUpload = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (e.target.files && e.target.files[0]) {
+        const selectedFile = e.target.files[0];
+        const reader = new FileReader();
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const selectedFile = e.target.files[0];
-      const reader = new FileReader();
+        reader.onloadend = () => {
+          setRecipe((prevRecipe) => ({
+            ...prevRecipe,
+            image: selectedFile,
+            imageUrl: reader.result as string, // Set the result as the thumbnail URL
+          }));
+        };
 
-      reader.onloadend = () => {
-        setRecipe({
-          ...recipe,
-          image: selectedFile,
-          imageUrl: reader.result as string, // Set the result as the thumbnail URL
-        });
-      };
+        reader.readAsDataURL(selectedFile); // Convert the image to base64 string
+      }
+    },
+    []
+  );
 
-      reader.readAsDataURL(selectedFile); // Convert the image to base64 string
-    }
-  };
-
-  const handleAddIngredient = () => {
+  const handleAddIngredient = useCallback(() => {
     setRecipe((prev) => ({
       ...prev,
       ingredients: [...prev.ingredients, { _id: Date.now(), desc: "" }],
     }));
-  };
+  }, []);
 
-  const handleAddDirection = () => {
+  const handleAddDirection = useCallback(() => {
     setRecipe((prev) => ({
       ...prev,
       directions: [...prev.directions, { _id: Date.now(), desc: "" }],
     }));
-  };
+  }, []);
 
-  const validateForm = () => {
+  const validateForm = useCallback(() => {
     const newErrors: any = {};
+
+    // Check required fields
     if (!recipe.recipe_title)
       newErrors.recipe_title = "Recipe title is required.";
     if (!recipe.recipe_desc)
@@ -128,57 +139,78 @@ const CreateRecipe: React.FC = () => {
       newErrors.servings = "Servings must be at least 1.";
     if (!recipe.category) newErrors.category = "Category is required.";
     if (!recipe.image) newErrors.image = "Image is required.";
+
+    // Validate ingredients
     recipe.ingredients.forEach((ingredient, index) => {
       if (!ingredient.desc)
         newErrors[`ingredient_${index}`] = "Ingredient cannot be empty.";
     });
+
+    // Validate directions
     recipe.directions.forEach((direction, index) => {
       if (!direction.desc)
         newErrors[`direction_${index}`] = "Direction cannot be empty.";
     });
+
+    // Validate rating
     if (recipe.rating < 0 || recipe.rating > 5)
       newErrors.rating = "Rating must be between 0 and 5.";
+
+    // Set errors and return whether the form is valid
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0; // Returns true if no errors
-  };
+    return Object.keys(newErrors).length === 0;
+  }, [recipe]);
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!validateForm()) return; // Validate before proceeding
 
-    const data: any = localStorage.getItem("userData");
-    const formData = new FormData();
-    formData.append("recipe_title", recipe.recipe_title);
-    formData.append("recipe_desc", recipe.recipe_desc);
-    formData.append("activeTime", recipe.activeTime);
-    formData.append("totalTime", recipe.totalTime);
-    formData.append("categoryId", recipe.category);
-    formData.append("servings", recipe.servings.toString());
-    formData.append("ingredients", JSON.stringify(recipe.ingredients));
-    formData.append("directions", JSON.stringify(recipe.directions));
-    formData.append("rating", recipe.rating.toString());
-    formData.append("createdBy", JSON.parse(data).name);
-    formData.append("createrUser_Id", JSON.parse(data)._id);
-    if (recipe.image) {
-      formData.append("image", recipe.image); // Append the uploaded image
+    const user: any = localStorage.getItem("auth");
+    if (user) {
+      try {
+        const parsedUser = JSON.parse(user);
+        const formData = new FormData();
+        formData.append("recipe_title", recipe.recipe_title);
+        formData.append("recipe_desc", recipe.recipe_desc);
+        formData.append("activeTime", recipe.activeTime);
+        formData.append("totalTime", recipe.totalTime);
+        formData.append("categoryId", recipe.category);
+        formData.append("servings", recipe.servings.toString());
+        formData.append("ingredients", JSON.stringify(recipe.ingredients));
+        formData.append("directions", JSON.stringify(recipe.directions));
+        formData.append("rating", recipe.rating.toString());
+        formData.append("createdBy", parsedUser.user.name);
+        formData.append("createrUser_Id", parsedUser.user._id);
+        if (recipe.image) {
+          formData.append("image", recipe.image); // Append the uploaded image
+        }
+        await createRecipe(formData);
+        toast.success("Recipe created successfully!");
+      } catch (error) {
+        toast.error("Failed to create recipe. Please try again.");
+        console.log(error);
+      }
     }
-
-    try {
-      await createRecipe(formData);
-      toast.success("Recipe created successfully!");
-    } catch (error) {
-      toast.error("Failed to create recipe. Please try again.");
-      console.log(error);
-    }
-  };
-  const handleDeleteIngredient = (index: number) => {
-    const newIngredients = recipe.ingredients.filter((_, i) => i !== index);
-    setRecipe({ ...recipe, ingredients: newIngredients });
   };
 
-  const handleDeleteDirection = (index: number) => {
-    const newDirections = recipe.directions.filter((_, i) => i !== index);
-    setRecipe({ ...recipe, directions: newDirections });
-  };
+  const handleDeleteIngredient = useCallback(
+    (index: number) => {
+      const newIngredients = recipe.ingredients.filter((_, i) => i !== index);
+      setRecipe((prevRecipe) => ({
+        ...prevRecipe,
+        ingredients: newIngredients,
+      }));
+    },
+    [recipe.ingredients] // Dependency on recipe.ingredients since it is being used to calculate new ingredients
+  );
+
+  const handleDeleteDirection = useCallback(
+    (index: number) => {
+      const newDirections = recipe.directions.filter((_, i) => i !== index);
+      setRecipe((prevRecipe) => ({ ...prevRecipe, directions: newDirections }));
+    },
+    [recipe.directions] // Dependency on recipe.directions since it is being used to calculate new directions
+  );
   return (
     <Container maxWidth="md">
       <Box component="form" onSubmit={handleSubmit} sx={{ mt: 4, p: 2 }}>
