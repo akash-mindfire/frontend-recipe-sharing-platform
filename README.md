@@ -1,57 +1,165 @@
-# Recipe-Sharing Platform
+# Recipe Sharing Platform
+A full-stack MERN application designed for food enthusiasts to share and discover recipes. This platform enables users to browse recipes by category, create their own, rate and review others' recipes, and explore trending and curated collections.
 
-## Description
+# Key Features
 
-The Recipe-Sharing Platform is a web application that allows users to create and share their favorite recipes. Users can view, review, and rate recipes shared by others, but they are not allowed to rate or review their own recipes. This application aims to create a community of cooking enthusiasts who can share their culinary expertise and learn from each other.
+# Recipe Exploration: Browse recipes by category, trending status, and popularity.
+# User Interaction: Review, rate, and save recipes to favorites (restrictions apply).
+# Recipe Creation: Users can create, edit, and share their own recipes.
+# Optimized API Calls: RTK Query for efficient and centralized API data fetching.
+# Responsive Design: Optimized for both desktop and mobile devices.
+# Testing: Includes Jest for unit testing.
+# Error Handling: Middleware for centralized error management in the frontend.
 
-## Features
+# Technologies Used
 
-- **Create Recipes**: Users can create new recipes by providing details such as recipe title, description, ingredients, instructions, and cooking times.
-- **View Recipes**: Browse a list of recipes shared by others, including their ratings, reviews, and details.
-- **Rate Recipes**: Users can rate recipes on a scale of 1-5.
-- **Leave Reviews**: Users can leave reviews on recipes they have tried, sharing their experience and feedback.
-- **Image Upload**: Users can upload an image for each recipe.
-- **User Authentication**: Users can register and log in to manage their recipes, ratings, and reviews.
+# Frontend
+  # React.js: For building the user interface.
+  # React Router: For single-page application navigation.
+  # Redux Toolkit (RTK): State management with RTK Query for API calls
+  # MaterialUI: For responsive design.
+  # CSS Modules: For modular and reusable styles.
 
-## Technologies Used
+# Backend
+  # Node.js: Runtime for the backend server.
+  # Express.js: Web framework for routing and middleware.
+  # MongoDB: NoSQL database for recipe and user data storage.
+  # Testing
+  # Jest: For unit testing on both frontend and backend.
+  # Other Tools
+  # JWT (JSON Web Token): For secure authentication.
+  # dotenv: For managing environment variables.
+  # Middleware: Error handling in the frontend for consistent user experience.
 
-- **Frontend**: React, React Router, Material-UI (for UI components)
-- **Backend**: Node.js, Express
-- **Database**: MongoDB (for storing user data and recipes)
-- **Authentication**: JWT (JSON Web Tokens) for secure user authentication
-- **State Management**: Redux (for managing global state)
-- **Image Upload**: Multer for handling image uploads in the backend
 
-## Installation
+# Project Structure
 
-### 1. Clone the repository:
 
-```bash
-https://github.com/akash-mindfire/frontend-recipe-sharing-platform
+ project-root/
+│   ├── public/          # Public static files
+│   ├── src/
+│   │   ├── assets       # Stored local images
+│   │   ├── redux        # Contains store.js for state management
+│   │   ├── services     # Conatin all api call using redux-toolkit query
+│   │   ├── components/  # Reusable components
+│   │   ├── pages/       # Page-level components
+│   │   ├── utils/       # Utility functions
+│   │   ├── constants/   # Centralized constants
+│   │   ├── middleware/  # Frontend error handling middleware
+│   │   ├── tests/       # Jest test cases for frontend
+│   │   └── App.js       # React app entry point
+│   └── package.json     # Frontend dependencies
+│
+├── .env                 # Environment variables (gitignored)
+├── README.md            # Project documentation
+├── package.json         # Backend dependencies
+└── jest.config.js       # Jest configuration file
+└── tsconfig.json        # Typescript config
+└── vite.config.ts       # Config of vite
+└── vercel.json          # Config for deploying on vercel
 
-## 2. Install Dependencies:
-Navigate to the project directory and run: "npm install"
-## 3. Start the Application:
-To run the application, use the following command:"npm run dev"
 
-This will start both the frontend and backend servers in development mode.
+# Installation and Setup
+  # Prerequisites
+   # Node.js (>= 14.x)
+   # MongoDB (local or cloud instance)
+    
+  # Install dependencies:
+    npm install
+  
+  # Configure environment variables in .env
+    VITE_API_BASE_URL=http://localhost:5000/api
 
-The frontend will be accessible at http://localhost:3000, and the backend API will be accessible at http://localhost:5000.
+  # Run the development server:
+    npm start
 
-##Usage
-Create an account: Register by providing a username, email, and password.
-Log in: Log in using your credentials to access your personal dashboard.
-Create a recipe: Add a recipe by providing the necessary information, including ingredients and instructions.
-Browse recipes: Explore recipes shared by other users, view their ratings, and read reviews.
-Rate and review: Rate recipes you have tried and leave a review sharing your experience.
-Image upload: Upload an image to accompany your recipe to make it more appealing.
 
-##Limitations
-Self Rating/Review: Users are not allowed to rate or review their own recipes.
-No Direct Message: Currently, the platform does not support direct messaging between users.
+# RTK Query for API Calls
+The project leverages Redux Toolkit's RTK Query for efficient data fetching and caching. All API calls are managed through a centralized api slice, which simplifies state management and reduces boilerplate code.
 
-##Future Enhancements
-Recipe Search: Implement search functionality to allow users to find recipes based on ingredients or titles.
-User Profiles: Allow users to customize their profiles with images and bio.
-Social Sharing: Enable sharing of recipes on social media platforms.
-```
+# Setup
+    API calls are defined in src/services/api.ts. For example:
+
+    import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+    export const recipeApi = createApi({
+    reducerPath: 'recipeApi',
+    baseQuery: fetchBaseQuery({ baseUrl: '/api' }),
+    endpoints: (builder) => ({
+        getRecipes: builder.query({
+        query: () => 'recipes',
+        }),
+        getRecipeById: builder.query({
+        query: (id) => `recipes/${id}`,
+        }),
+        createRecipe: builder.mutation({
+        query: (recipe) => ({
+            url: 'recipes',
+            method: 'POST',
+            body: recipe,
+        }),
+        }),
+    }),
+    });
+
+    export const { useGetRecipesQuery, useGetRecipeByIdQuery, useCreateRecipeMutation } = recipeApi;
+
+# Usage
+    Components use hooks auto-generated by RTK Query:
+
+    import { useGetRecipesQuery } from '../api/recipeApi';
+    const RecipeList = () => {
+    const { data: recipes, error, isLoading } = useGetRecipesQuery();
+
+    if (isLoading) return <p>Loading...</p>;
+    if (error) return <p>Error loading recipes</p>;
+
+    return (
+        <ul>
+        {recipes.map((recipe) => (
+            <li key={recipe.id}>{recipe.name}</li>
+        ))}
+        </ul>
+    );
+    };
+
+
+# Usage
+ # Homepage
+    Explore the featured carousel, recipe categories, and curated collections.
+    View trending and most-viewed recipes.
+ # Recipe Detail Page
+    Rate and review recipes by other users.
+    Mark recipes as favorites for easy access.
+ # Create Recipe
+    Share your own recipes through a user-friendly form.
+
+
+# Testing
+    The project uses Jest for unit testing on both the frontend and backend.
+
+ # Running Tests
+        npm test
+ # Test Coverage
+        Includes tests for controllers, middleware, and utility functions in the backend.
+        Covers React components, hooks, and Redux actions in the frontend.
+
+# Error Handling
+    The project implements error handling in both frontend and backend:
+ # Frontend
+    A dedicated middleware catches and displays errors in a user-friendly format. Examples include:
+        Network failures.
+        Invalid form submissions.
+# Troubleshooting
+  # Common Issues
+   # Frontend cannot connect to backend:
+    Confirm the backend server is running on port 5000.
+    Check the proxy setting in frontend/package.json.
+
+   # Tests fail:
+    Ensure required environment variables are set for testing.
+    Verify all dependencies are installed.
+
+# Future Enhancements
+ # Add user profiles with activity history.
+ # Implement advanced search and filtering.
+ # Enhance test coverage with integration tests.
