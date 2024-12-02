@@ -1,4 +1,5 @@
 import React, { useCallback, useState } from "react";
+
 import {
   Box,
   Button,
@@ -13,12 +14,14 @@ import {
   Tooltip,
   Typography,
 } from "@mui/material";
-import { useCreateRecipeMutation, useGetCategoryQuery } from "../services/api";
+
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import DeleteIcon from "@mui/icons-material/Delete";
 import AddIcon from "@mui/icons-material/Add";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+
+import { useCreateRecipeMutation, useGetCategoryQuery } from "../services/api";
 interface Ingredient {
   _id: number;
   desc: string;
@@ -68,6 +71,7 @@ const CreateRecipe: React.FC = () => {
   const [createRecipe] = useCreateRecipeMutation();
   const { data } = useGetCategoryQuery({});
 
+  // Function to select category in form 
   const handleSelectCategory = useCallback((e: any) => {
     setRecipe((prevRecipe) => ({
       ...prevRecipe,
@@ -75,6 +79,7 @@ const CreateRecipe: React.FC = () => {
     }));
   }, []);
 
+  // Function to handlechange in diffenet input field in form
   const handleInputChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
       setRecipe((prevRecipe) => ({
@@ -85,6 +90,7 @@ const CreateRecipe: React.FC = () => {
     []
   );
 
+  // Function to delete imgae after get selected
   const handleDeleteImage = useCallback(() => {
     setRecipe((prevRecipe) => ({
       ...prevRecipe,
@@ -92,6 +98,8 @@ const CreateRecipe: React.FC = () => {
       imageUrl: null,
     }));
   }, []);
+
+  // Function to upload image 
   const handleImageUpload = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       if (e.target.files && e.target.files[0]) {
@@ -112,6 +120,7 @@ const CreateRecipe: React.FC = () => {
     []
   );
 
+  // Function to add ingredients of recipe
   const handleAddIngredient = useCallback(() => {
     setRecipe((prev) => ({
       ...prev,
@@ -119,6 +128,7 @@ const CreateRecipe: React.FC = () => {
     }));
   }, []);
 
+  // Function to add direcitons of recipe
   const handleAddDirection = useCallback(() => {
     setRecipe((prev) => ({
       ...prev,
@@ -126,6 +136,7 @@ const CreateRecipe: React.FC = () => {
     }));
   }, []);
 
+  // Function to validate the all input field in form 
   const validateForm = useCallback(() => {
     const newErrors: any = {};
 
@@ -162,6 +173,7 @@ const CreateRecipe: React.FC = () => {
     return Object.keys(newErrors).length === 0;
   }, [recipe]);
 
+  // Function to submit the all data of recipe
   const handleSubmit = useCallback(
     async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
@@ -198,6 +210,7 @@ const CreateRecipe: React.FC = () => {
     [recipe, validateForm, createRecipe, navigate] // Dependencies that trigger re-creation of the callback
   );
 
+  // Function to delete ingredient of recipe
   const handleDeleteIngredient = useCallback(
     (index: number) => {
       const newIngredients = recipe.ingredients.filter((_, i) => i !== index);
@@ -209,6 +222,7 @@ const CreateRecipe: React.FC = () => {
     [recipe.ingredients] // Dependency on recipe.ingredients since it is being used to calculate new ingredients
   );
 
+  // Function to delete ingredient of recipe
   const handleDeleteDirection = useCallback(
     (index: number) => {
       const newDirections = recipe.directions.filter((_, i) => i !== index);

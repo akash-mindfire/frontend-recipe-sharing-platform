@@ -1,7 +1,9 @@
 import React from "react";
-import { useGetCategoryQuery } from "../services/api"; // Adjust the import based on your query hook
+
 import { Box, Typography, Grid } from "@mui/material";
 import { useNavigate } from "react-router-dom";
+
+import { useGetCategoryQuery } from "../services/api"; // Adjust the import based on your query hook
 import Loader from "./loader";
 
 interface CategoryItem {

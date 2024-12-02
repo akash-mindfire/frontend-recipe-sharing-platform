@@ -1,5 +1,4 @@
 import { useNavigate, useParams } from "react-router-dom";
-import { useGetCategoryRecipeQuery } from "../services/api";
 import {
   Box,
   Grid,
@@ -9,6 +8,8 @@ import {
   Typography,
 } from "@mui/material";
 import Rating from "@mui/material/Rating";
+
+import { useGetCategoryRecipeQuery } from "../services/api";
 import Loader from "../components/loader";
 
 function RecipeList() {

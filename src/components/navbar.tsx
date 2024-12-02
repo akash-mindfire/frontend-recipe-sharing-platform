@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+
 import AppBar from "@mui/material/AppBar";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
@@ -9,7 +10,6 @@ import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import Box from "@mui/material/Box";
 import CloseIcon from "@mui/icons-material/Close";
-
 import {
   Avatar,
   TextField,
@@ -32,6 +32,8 @@ import { useNavigate } from "react-router-dom";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import ArrowDropDownIcon from "@mui/icons-material/ArrowDropDown";
 import { useDispatch, useSelector } from "react-redux";
+import { toast } from "react-toastify";
+
 import { resetTokens } from "../redux/reducers/authReducer";
 import { RootState } from "../redux/store"; // import the RootState type
 import {
@@ -39,7 +41,6 @@ import {
   useGetFavouriteRecipeQuery,
   useGetSearchRecipeQuery,
 } from "../services/api";
-import { toast } from "react-toastify";
 
 const Navbar: React.FC = () => {
   const theme = useTheme();
@@ -79,11 +80,93 @@ const Navbar: React.FC = () => {
   );
   const [addFav] = useAddFavMutation();
 
+  //for open dropdown in mobile view
+  const handleMenuOpen = useCallback((event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  }, []);
+
+  // For close dropdown in mobile view
+  const handleMenuClose = useCallback(
+    (page: string) => {
+      setAnchorEl(null);
+      switch (page) {
+        case "recipe":
+          navigate("/");
+          break;
+        case "createrecipe":
+          navigate("createrecipe");
+          break;
+        case "login":
+          navigate("login");
+          break;
+      }
+    },
+    [navigate]
+  );
+
+  // Function for toggling search textfield
+  const toggleSearch = useCallback(() => {
+    setShowSearch((prev) => !prev);
+    setSearchResults([]);
+  }, []);
+
+  // Function to clear search textfield value when any recipe get selected
+  const handleSearchSubmit = useCallback((event: React.FormEvent) => {
+    event.preventDefault();
+    setSearchText("");
+  }, []);
+
+  // Function to open favourite drawer from right side
+  const toggleDrawer = useCallback(() => {
+    setState((prev) => !prev);
+  }, []);
+
+  // Fucntion to show dropdown for logout
+  const handleProfileMenuOpen = useCallback(
+    (event: React.MouseEvent<HTMLElement>) => {
+      setProfileMenuAnchor(event.currentTarget);
+    },
+    []
+  );
+
+  // Fucntion to close dropdown for logout
+  const handleProfileMenuClose = useCallback(() => {
+    setProfileMenuAnchor(null);
+  }, []);
+
+  // Logout function to clear token
+  const handleLogout = useCallback(() => {
+    dispatch(resetTokens());
+    navigate("/login");
+    setAnchorEl(null);
+  }, [dispatch, navigate]);
+
+  // Function to delete/add favourite recipe
+  const deleteRecipe = useCallback(
+    async (_id: string) => {
+      try {
+        const formData = {
+          userId: user?._id,
+          recipe_id: _id,
+        };
+        await addFav(formData); // Assuming addFav performs the deletion operation
+        setDeletedRecipe((prevState) => !prevState); // Toggle state based on the previous state
+      } catch (error) {
+        toast.error("Failed to delete recipe. Please try again.");
+        console.log(error);
+      }
+    },
+    [user?._id, setDeletedRecipe]
+  );
+
+  // Handle favourite list when save receipe or delete recipe triggered
   useEffect(() => {
     if (user?._id) {
       refetch(); // Manually trigger the API call
     }
   }, [state, user?._id, deletedRecipe]);
+
+  // Search placeholder animation
   useEffect(() => {
     if (showSearch) {
       const placeholderText = "Search Your Recipe";
@@ -142,76 +225,6 @@ const Navbar: React.FC = () => {
       console.error("Error fetching data:", apiError); // Log error for debugging
     }
   }, [searchData, apiError]);
-
-  const handleMenuOpen = useCallback((event: React.MouseEvent<HTMLElement>) => {
-    setAnchorEl(event.currentTarget);
-  }, []);
-
-  const handleMenuClose = useCallback(
-    (page: string) => {
-      setAnchorEl(null);
-      switch (page) {
-        case "recipe":
-          navigate("/");
-          break;
-        case "createrecipe":
-          navigate("createrecipe");
-          break;
-        case "login":
-          navigate("login");
-          break;
-      }
-    },
-    [navigate]
-  );
-
-  const toggleSearch = useCallback(() => {
-    setShowSearch((prev) => !prev);
-    setSearchResults([]);
-  }, []);
-
-  const handleSearchSubmit = useCallback((event: React.FormEvent) => {
-    event.preventDefault();
-    setSearchText("");
-  }, []);
-
-  const toggleDrawer = useCallback(() => {
-    setState((prev) => !prev);
-  }, []);
-
-  const handleProfileMenuOpen = useCallback(
-    (event: React.MouseEvent<HTMLElement>) => {
-      setProfileMenuAnchor(event.currentTarget);
-    },
-    []
-  );
-
-  const handleProfileMenuClose = useCallback(() => {
-    setProfileMenuAnchor(null);
-  }, []);
-
-  const handleLogout = useCallback(() => {
-    dispatch(resetTokens());
-    navigate("/login");
-    setAnchorEl(null);
-  }, [dispatch, navigate]);
-
-  const deleteRecipe = useCallback(
-    async (_id: string) => {
-      try {
-        const formData = {
-          userId: user?._id,
-          recipe_id: _id,
-        };
-        await addFav(formData); // Assuming addFav performs the deletion operation
-        setDeletedRecipe((prevState) => !prevState); // Toggle state based on the previous state
-      } catch (error) {
-        toast.error("Failed to delete recipe. Please try again.");
-        console.log(error);
-      }
-    },
-    [user?._id, setDeletedRecipe]
-  );
 
   return (
     <AppBar position="static">

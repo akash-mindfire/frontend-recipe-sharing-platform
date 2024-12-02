@@ -1,10 +1,7 @@
+import { useCallback, useEffect, useRef, useState } from "react";
+
 import { useParams } from "react-router-dom";
-import {
-  useAddFavMutation,
-  useGetFavouriteRecipeQuery,
-  useGetRecipeDetailsByIdQuery,
-} from "../services/api";
-import Loader from "../components/loader";
+import { useSelector } from "react-redux";
 import {
   Box,
   List,
@@ -16,11 +13,17 @@ import {
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import StarBorderIcon from "@mui/icons-material/StarBorder";
 import FiberManualRecordIcon from "@mui/icons-material/FiberManualRecord";
-import Reviews from "../components/reviews";
 import { toast } from "react-toastify";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { useSelector } from "react-redux";
+
+import Reviews from "../components/reviews";
 import { RootState } from "../redux/store";
+import {
+  useAddFavMutation,
+  useGetFavouriteRecipeQuery,
+  useGetRecipeDetailsByIdQuery,
+} from "../services/api";
+import Loader from "../components/loader";
+
 
 function RecipeDetail() {
   const { id } = useParams();
@@ -37,20 +40,7 @@ function RecipeDetail() {
       skip: !user?._id,
     }
   );
-
-  useEffect(() => {
-    if (favouriteRecipe?.recipes.some((recipe: any) => recipe._id == id)) {
-      setIsFav(true);
-    } else {
-      setIsFav(false);
-    }
-
-    if (user?._id) {
-      refetch();
-    }
-  }, [clickFavButton, favouriteRecipe, id, refetch]);
-
-
+  // Function to return time in DD-monthname/yy format
   const formatTime = (timestamp: any) => {
     const date = new Date(timestamp);
     const formattedDate = date.toLocaleDateString("en-US", {
@@ -60,7 +50,7 @@ function RecipeDetail() {
     });
     return formattedDate;
   };
-
+  // Function to add favourite recipe
   const handleFavRecipe = useCallback(async () => {
     try {
       const formData = {
@@ -75,6 +65,20 @@ function RecipeDetail() {
       console.log(error);
     }
   }, [user?._id, id]);
+
+  // Function to add/ remove favourite recipe
+  useEffect(() => {
+    if (favouriteRecipe?.recipes.some((recipe: any) => recipe._id == id)) {
+      setIsFav(true);
+    } else {
+      setIsFav(false);
+    }
+
+    if (user?._id) {
+      refetch();
+    }
+  }, [clickFavButton, favouriteRecipe, id, refetch]);
+
   if (isLoading) return <Loader />;
 
   if (error) return <div>Error loading recipes</div>;

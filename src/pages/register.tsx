@@ -1,8 +1,10 @@
 import { useCallback, useState } from "react";
+
 import { TextField, Button, Typography, Container, Box } from "@mui/material";
-import { useRegisterMutation } from "../services/api";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+
+import { useRegisterMutation } from "../services/api";
 import Loader from "../components/loader";
 
 const Register = () => {
@@ -15,11 +17,13 @@ const Register = () => {
   const [registerUser] = useRegisterMutation();
   const navigate = useNavigate();
 
+  // Function to handle input changes of different input field in register user form 
   const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   }, []);
 
+  // Function to call api to submit the user data
   const handleSubmit = useCallback(async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
