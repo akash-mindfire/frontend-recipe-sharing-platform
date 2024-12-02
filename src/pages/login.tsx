@@ -1,10 +1,12 @@
 import { useCallback, useState } from "react";
-import { TextField, Button, Typography, Container, Box } from "@mui/material";
-import { useLoginMutation } from "../services/api";
+
 import { useNavigate, useLocation } from "react-router-dom";
 import { useDispatch } from "react-redux";
-import { setTokens } from "../redux/reducers/authReducer";
 import { toast } from "react-toastify";
+import { TextField, Button, Typography, Container, Box } from "@mui/material";
+
+import { useLoginMutation } from "../services/api";
+import { setTokens } from "../redux/reducers/authReducer";
 import Loader from "../components/loader";
 
 interface FormData {
@@ -26,6 +28,7 @@ const Login = () => {
   // Extract redirect path from query parameter
   const redirectPath = new URLSearchParams(location.search).get("redirect");
 
+  // Function for handlechange of input field
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const { name, value } = e.target;
@@ -36,7 +39,7 @@ const Login = () => {
     },
     [] // No dependencies, because it's only using setFormData which should be stable.
   );
-
+  // Function to call api to submit data
   const handleSubmit = useCallback(
     async (e: React.FormEvent<HTMLFormElement>) => {
       e.preventDefault();
@@ -60,6 +63,7 @@ const Login = () => {
     [formData, dispatch, navigate, redirectPath] // Dependencies, only re-creates the function if these change
   );
 
+  // Function to redirect to register page
   const handleRegisterRedirect = useCallback(() => {
     navigate("/register"); // Redirect to register page
   }, [navigate]);

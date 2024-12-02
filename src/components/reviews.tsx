@@ -1,13 +1,15 @@
-import { Box, Typography, Button, Rating } from "@mui/material";
 import { useCallback, useEffect, useState } from "react";
+
+import { Box, Typography, Button, Rating } from "@mui/material";
 import { useSelector } from "react-redux";
 import { RootState } from "../redux/store";
 import ReviewsIcon from "@mui/icons-material/Reviews";
 import { useNavigate } from "react-router-dom";
 import StarIcon from "@mui/icons-material/Star";
 import { toast } from "react-toastify";
-import { useAddReviewMutation, useEditReviewMutation } from "../services/api";
 import EditIcon from "@mui/icons-material/Edit";
+
+import { useAddReviewMutation, useEditReviewMutation } from "../services/api";
 
 const labels: { [index: number]: string } = {
   1: "Couldn't eat it",
@@ -33,26 +35,7 @@ function Reviews({ recipeDetail, recipe_id }: any) {
   const [addReview] = useAddReviewMutation();
   const [editReview] = useEditReviewMutation();
 
-  useEffect(() => {
-    if (
-      recipeDetail &&
-      recipeDetail.reviews &&
-      Array.isArray(recipeDetail.reviews)
-    ) {
-      const reviewedData = recipeDetail.reviews.find(
-        (review: any) => review._id === user?._id
-      );
-      if (reviewedData) {
-        setIsReviewed(true);
-        setIsEditReview(true);
-        setReviewData(reviewedData);
-      } else {
-        setIsReviewed(false);
-        setReviewData({});
-      }
-    }
-  }, [recipeDetail, user?._id]);
-
+  // Return the timestamp format in dd/mm/yyyy
   const formatTimestamp = useCallback((timestamp: string): string => {
     const date = new Date(timestamp);
     return `${date.getDate().toString().padStart(2, "0")}/${(
@@ -62,11 +45,13 @@ function Reviews({ recipeDetail, recipe_id }: any) {
       .padStart(2, "0")}/${date.getFullYear()}`;
   }, []);
 
+  // Function to return to recipedetail page from where it redirect to login for review
   const handleRedirectToLogin = useCallback(() => {
     const currentPage = window.location.pathname;
     navigate(`/login?redirect=${encodeURIComponent(currentPage)}`);
   }, [navigate]);
 
+  // Function to submit add/edit review
   const handleSubmit = useCallback(async () => {
     try {
       const auth = localStorage.getItem("auth");
@@ -114,12 +99,13 @@ function Reviews({ recipeDetail, recipe_id }: any) {
     setReviewData,
     recipeDetail,
   ]);
-
+  // Fucntion to clear value when close button of review triggered
   const handleCancel = useCallback(() => {
     setReview("");
     setValue(0);
   }, [setReview, setValue]);
 
+  // Set different conditions for edit review ui
   const handleEditReview = useCallback(() => {
     setIsReviewed(false);
     setValue(reviewData.rating);
@@ -131,6 +117,27 @@ function Reviews({ recipeDetail, recipe_id }: any) {
     reviewData.rating,
     reviewData.review_message,
   ]);
+
+  // Review UI based on different condition
+  useEffect(() => {
+    if (
+      recipeDetail &&
+      recipeDetail.reviews &&
+      Array.isArray(recipeDetail.reviews)
+    ) {
+      const reviewedData = recipeDetail.reviews.find(
+        (review: any) => review._id === user?._id
+      );
+      if (reviewedData) {
+        setIsReviewed(true);
+        setIsEditReview(true);
+        setReviewData(reviewedData);
+      } else {
+        setIsReviewed(false);
+        setReviewData({});
+      }
+    }
+  }, [recipeDetail, user?._id]);
 
   return (
     <Box sx={{ mt: 2, width: { md: 750, xs: "100%" } }}>

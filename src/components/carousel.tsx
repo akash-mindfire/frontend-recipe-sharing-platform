@@ -1,6 +1,7 @@
 import { Box, Rating, Typography } from "@mui/material";
 import Carousel from "react-material-ui-carousel";
 import { useNavigate } from "react-router-dom";
+
 interface RecipeItem {
   _id: string; // Assuming string for ObjectId
   image: string;

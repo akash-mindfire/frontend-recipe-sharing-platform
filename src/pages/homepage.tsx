@@ -1,4 +1,5 @@
 import { Box } from "@mui/material";
+
 import CarouselHome from "../components/carousel";
 import { useGetHomepageDataQuery } from "../services/api";
 import CategoryRecipe from "../components/categoryRecipe";
